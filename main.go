@@ -7,7 +7,9 @@ import (
 	"path/filepath"
 	"time"
 
-	"k8s.io/apimachinery/pkg/api/errors"
+	//"github.com/ellistarn/slang/pkg/pretty"
+
+	//"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
@@ -61,23 +63,38 @@ func main() {
 				//     persistentVolumeClaim:
 				//       claimName: inflate-sc-vol-inflate-sc-0
 				claimName := claim.ClaimName
-				pvc, err := clientset.CoreV1().PersistentVolumeClaims("").Get(context.TODO(), claimName, metav1.GetOptions{})
+				fmt.Printf("claimName: %s\n", claimName)
+				pvc, err := clientset.CoreV1().PersistentVolumeClaims(p.Namespace).Get(context.TODO(), claimName, metav1.GetOptions{})
 				if err != nil {
 					fmt.Println("pvc err: ", err)
 					continue
 				}
-				// looks like the PV will have the nodeAffinity set right, just need to copy it over
+
+				if pvc.Spec.VolumeName != "" {
+					// looks like the PV will have the nodeAffinity set right, just need to copy it over
+					pv, err := clientset.CoreV1().PersistentVolumes().Get(context.TODO(), pvc.Spec.VolumeName, metav1.GetOptions{})
+					if err != nil {
+						fmt.Println("pv err: ", err)
+						continue
+					}
+					fmt.Printf("  pv for pod '%s' is: %s\n", p.Name, pv.Name)
+				}
 
 				scName := pvc.Spec.StorageClassName
-				if scName == nil {
-					continue
+				if scName != nil {
+					fmt.Printf("  storageClassName: %s\n", *scName)
+					sc, err := clientset.StorageV1().StorageClasses().Get(context.TODO(), *scName, metav1.GetOptions{})
+					if err != nil {
+						fmt.Println("sc err: ", err)
+						continue
+					}
+					for _, topology := range sc.AllowedTopologies {
+						for _, expr := range topology.MatchLabelExpressions {
+							fmt.Printf("  match label expression: %s: %+v\n", expr.Key, expr.Values)
+						}
+
+					}
 				}
-				_, err = clientset.StorageV1().StorageClasses().Get(context.TODO(), *scName, metav1.GetOptions{})
-				if err != nil {
-					fmt.Println("sc err: ", err)
-					continue
-				}
-				//if sc.AllowedTopologies
 			}
 		}
 
