@@ -7,8 +7,11 @@ require (
 	k8s.io/client-go v0.22.2
 )
 
+require github.com/ellistarn/slang v0.0.0-20211001193220-d42970eee599
+
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/ellistarn/slang v0.0.0-20211001193220-d42970eee599
 	github.com/go-logr/logr v0.4.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect

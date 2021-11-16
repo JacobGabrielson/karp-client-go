@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
-	//"github.com/ellistarn/slang/pkg/pretty"
+	"github.com/ellistarn/slang/pkg/pretty"
 
 	//"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -78,6 +78,11 @@ func main() {
 						continue
 					}
 					fmt.Printf("  pv for pod '%s' is: %s\n", p.Name, pv.Name)
+					if pv.Spec.NodeAffinity != nil {
+						fmt.Printf("    nodeAffinity for pv is: %s\n", pretty.Verbose(pv.Spec.NodeAffinity))
+					} else {
+						fmt.Printf("    no nodeAffinity\n")
+					}
 				}
 
 				scName := pvc.Spec.StorageClassName
